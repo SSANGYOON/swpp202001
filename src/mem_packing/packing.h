@@ -6,8 +6,12 @@
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
 #include <string>
+#include <vector>
 
 #include "llvm/IR/Value.h"
+
+using namespace std;
+using namespace llvm;
 
 enum PackedPosition = {HIGHER,LOWER};
 
@@ -16,22 +20,26 @@ class Packing{
   llvm::Value *memValue;  //packed variable's Value instance.
   enum PackedPosition packedPos; //position in packing register
 public:
-  llvm::Value getPackingReg(){return this->packingReg;}
-  llvm::Value getMemValue(){return this->memValue;}
-  llvm::Value getPackedPosition(){return this->packedPos;}
+  llvm::Value* getPackingReg(){return this->packingReg;}
+  llvm::Value* getMemValue(){return this->memValue;}
+  enum PackedPosition getPackedPosition(){return this->packedPos;}
 
-  llvm::Value setPackingReg(llvm::Value* v){
+  llvm::Value* setPackingReg(llvm::Value* v){
     this->packingReg = v;
     return this->packingReg;
   }
-  llvm::Value setMemValue(llvm::Value* v){
+  llvm::Value* setMemValue(llvm::Value* v){
     this->memValue = v;
     return this->memValue;
   }
-  llvm::Value setPackedPosition(enum PackedPosition pos){
+  enum PackedPosition setPackedPosition(enum PackedPosition pos){
     this->packedPos = pos;
     return this->packedPos;
   }
+
+  static Packing* find(llvm::Value* val,vector<Packing*> &PackingLst);
+  static vector<llvm::Instruction*>* getOptimizedInsts(llvm::LoadInst *loadInst);
+
 };
 
 class PackMemIntoReg : public llvm::PassInfoMixin<PackMemIntoReg> {
