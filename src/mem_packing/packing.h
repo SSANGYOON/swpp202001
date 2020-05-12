@@ -36,10 +36,11 @@ public:
     this->packedPos = pos;
     return this->packedPos;
   }
-
+  
   static Packing* find(llvm::Value* val,vector<Packing*> &PackingLst);
   static vector<llvm::Instruction*>* getOptimizedInsts(llvm::LoadInst *loadInst);
-
+  static vector<Value*>* find_ptr32(Module &M);
+  static vector<Packing*>* getPacking(Module &M, ModuleAnalysisManager &FAM)
 };
 
 class PackMemIntoReg : public llvm::PassInfoMixin<PackMemIntoReg> {

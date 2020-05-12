@@ -89,7 +89,7 @@ vector<llvm::Instruction*>* Packing::getOptimizedInsts(llvm::LoadInst* loadInst,
   vector<Value*>* optimizedInst = new vector();
   optimizedInst->push_back(lshrOp);
   optimizedInst->push_back(uremOp);
-  optimizedInst->push_back(truncOp);
+  optimizedInst->push_back(&truncOp);
   
 
   return optimizedInst;
