@@ -18,8 +18,11 @@ using namespace llvm;
 */
 vector<Value*>* Packing::find_ptr32(Module &M){
   vector<Value*>* candidate = new vector<Value*>();
+  // loop for function
   for(auto F : M){
-    for(auto B  : F){
+    //loop for block
+    for(auto BB  : F){
+      //loop for instruction
       for(auto I : B){
         Value p;
         if(auto a = dyn_cast<AllocaInst>(I)){
@@ -83,7 +86,7 @@ vector<Value*>* Packing::find_ptr32(Module &M){
  * @return vector containing all Packing instances for each pointer
  * 
 */
-vector<Packing*>* Packing::getPacking(Module &M, ModuleAnalysisManager &FAM,llvm::LLVMContext context){
+vector<Packing*>* Packing::getPacking(Module &M, ModuleAnalysisManager &FAM,llvm::LLVMContext &context){
   vector<Value*>* candidate=Packing::find_ptr32(M);
   vector<Packing*>* packs = new vector<Packing*>();
   DominatorTree &DT = FAM.getResult<DominatorTreeAnalysis>(M);
@@ -179,11 +182,11 @@ vector<Packing*>* Packing::getPacking(Module &M, ModuleAnalysisManager &FAM,llvm
         auto addOp = llvm::BinaryOperator::CreateAdd(dyn_cast<Value>(&zextOp2),dyn_cast<Value>(shl),*fitTwine);
         auto PackingReg=dyn_cast<Value>(addOp);
         Packing firstPack = new Packing();
-        firstPack.setMemValue(firstValue);
+        firstPack.setMemValue(s1->getValueOperand());
         firstPack.setPackedPosition(HIGHER);
         firstPack.setPackingReg(PackingReg);
         Packing secondPack = new Packing();
-        secondPack.setMemValue(secondValue);
+        secondPack.setMemValue(s2->getValueOperand());
         secondPack.setPackedPosition(LOWER);
         secondPack.setPackingReg(PackingReg);
         s2->getParent()->getInstList().push_back(zextOp1);
