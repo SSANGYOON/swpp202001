@@ -64,7 +64,7 @@ vector<Value*>* Packing::find_ptr32(Module &M){
             if(store_num==1&&not_ret&&not_gep){
               candidate->push_back(&p);
             }
-          }
+         }
         }
       }
     }
@@ -169,7 +169,7 @@ vector<Packing*>* Packing::getPacking(Module &M, ModuleAnalysisManager &FAM,llvm
         }
         auto baseTwine1 = new Twine(ptr1->getName());
         auto baseTwine2 = new Twine(ptr2->getName());
-        auto fitTwine = new Twine("fit");
+      
         auto zextOp1 = llvm::ZExtInst(s1->getValueOperand(), llvm::IntegerType::getInt64Ty(context),
         baseTwine1->concat("_zext")
         );
@@ -179,7 +179,7 @@ vector<Packing*>* Packing::getPacking(Module &M, ModuleAnalysisManager &FAM,llvm
         auto shl = llvm::BinaryOperator::CreateShl(dyn_cast<Value>(&zextOp1), ConstantInt::get(llvm::IntegerType::getInt64Ty(context),32),
         baseTwine2->concat("_shl")
         );
-        auto addOp = llvm::BinaryOperator::CreateAdd(dyn_cast<Value>(&zextOp2),dyn_cast<Value>(shl),*fitTwine);
+        auto addOp = llvm::BinaryOperator::CreateAdd(dyn_cast<Value>(&zextOp2),dyn_cast<Value>(shl),baseTwine1->concat("_").concat(ptr2->getName()).concat("_fit"));
         auto PackingReg=dyn_cast<Value>(addOp);
         Packing firstPack = new Packing();
         firstPack.setMemValue(s1->getValueOperand());
