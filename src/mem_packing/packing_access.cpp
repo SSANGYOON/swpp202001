@@ -20,7 +20,7 @@ using namespace llvm;
  * @return Packing* searching succeed
  * 
 */
-Packing* find(llvm::Value* val, vector<Packing*> &PackingLst){
+Packing* a_find(llvm::Value* val, vector<Packing*> &PackingLst){
   vector<Packing*>::iterator it = std::find_if(
       PackingLst.begin(),PackingLst.end(),
       [&] (Packing* packing) { return packing->getMemValue()==val; }
@@ -41,19 +41,19 @@ Packing* find(llvm::Value* val, vector<Packing*> &PackingLst){
  * @param llvm::LoadInst* loadInst load instruction to replace with optimized instructions.
  * @param llvm::LLVMContext context context value.
  * 
- * @return vector<llvm::Instruction*>*
- * @return NULL It is not packed value on memory.
+ * @return 0, success
+ * @return -1 NULL It is not packed value on memory.
  * 
 */
-vector<llvm::Instruction*>* Packing::getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext context){
+int Packing::getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext context, vector<Packing*> &PackingLst){
   Value* pointerValue = loadInst->getPointerOperand();
   
   // find packing instance from packing list
-  Packing* packPtr = Packing::find(pointerValue);
+  Packing* packPtr = a_find(pointerValue,PackingLst);
 
   // if it is not packed value
   if(!packPtr){
-    return NULL;
+    return -1;
   }
 
   auto loadName = loadInst->getName();
@@ -73,7 +73,7 @@ vector<llvm::Instruction*>* Packing::getOptimizedInsts(llvm::LoadInst* loadInst,
   auto lshrOp = llvm::BinaryOperator::CreateLShr(
     packPtr->getPackingReg(),
     ConstantInt::get(llvm::IntegerType::getInt64Ty(context),shrNum),
-    baseTwine->concat("_tmp1"))
+    baseTwine->concat("_tmp1")
   );
   auto uremOp = llvm::BinaryOperator::CreateURem(
     dyn_cast<Value>(lshrOp),
@@ -84,13 +84,12 @@ vector<llvm::Instruction*>* Packing::getOptimizedInsts(llvm::LoadInst* loadInst,
     dyn_cast<Value>(uremOp),
     llvm::IntegerType::getInt32Ty(context),
     *baseTwine
-  );
+  ).clone();
 
-  vector<Value*>* optimizedInst = new vector();
-  optimizedInst->push_back(lshrOp);
-  optimizedInst->push_back(uremOp);
-  optimizedInst->push_back(&truncOp);
-  
+  lshrOp->insertBefore(loadInst);
+  uremOp->insertBefore(loadInst);
+  truncOp->insertBefore(loadInst);
+  loadInst->eraseFromParent();
 
-  return optimizedInst;
+  return 0;
 }

@@ -13,16 +13,18 @@
 using namespace std;
 using namespace llvm;
 
-enum PackedPosition = {HIGHER,LOWER};
+typedef int PackedPosition;
+#define HIGHER 1
+#define LOWER 0
 
 class Packing{
   llvm::Value *packingReg; //packing register after replacement for assignment
   llvm::Value *memValue;  //packed variable's Value instance.
-  enum PackedPosition packedPos; //position in packing register
+  PackedPosition packedPos; //position in packing register
 public:
   llvm::Value* getPackingReg(){return this->packingReg;}
   llvm::Value* getMemValue(){return this->memValue;}
-  enum PackedPosition getPackedPosition(){return this->packedPos;}
+  PackedPosition getPackedPosition(){return this->packedPos;}
 
   llvm::Value* setPackingReg(llvm::Value* v){
     this->packingReg = v;
@@ -32,7 +34,7 @@ public:
     this->memValue = v;
     return this->memValue;
   }
-  enum PackedPosition setPackedPosition(enum PackedPosition pos){
+  PackedPosition setPackedPosition(PackedPosition pos){
     this->packedPos = pos;
     return this->packedPos;
   }
@@ -52,5 +54,3 @@ public:
       outputFile(outputFile), printDepromotedModule(printDepromotedModule) {}
   llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM);
 };
-
-#endif

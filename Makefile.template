@@ -6,12 +6,13 @@ SRC_TEST=$(filter-out src/main.cpp, $(SRC_ALL))
 OBJ=$(SRC:src/%.cpp=obj/%.o)
 OBJ_TEST=$(SRC_TEST:src/%.cpp=obj/%.o) obj/gtest_all.o
 DEPS=$(wildcard src/*.h)
+_DEPS=$(wildcard src/mem_packing/*.h) #Modification for compiling packing path
 _dummy := $(shell mkdir -p obj)
 
 all: sf-compiler sf-compiler-tests
 
-sf-compiler: $(OBJ)
-	@$(CXX) $(LDFLAGS) -o sf-compiler $(OBJ)
+sf-compiler: $(OBJ) obj/packing.o #Modification for compiling packing path
+	@$(CXX) $(LDFLAGS) -o sf-compiler $(OBJ) obj/packing.o 
 
 sf-compiler-tests: $(OBJ_TEST)
 	@$(CXX) $(LDFLAGS) -o sf-compiler-tests $(OBJ_TEST)
@@ -21,6 +22,9 @@ test: sf-compiler-tests
 	@./run-filechecks.sh $(FILECHECK_PATH)
 
 obj/SimpleBackend.o: src/SimpleBackend.cpp $(DEPS)
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+obj/packing.o: src/mem_packing/packing_access.cpp $(_DEPS) #Modification for compiling packing path
 	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 obj/AssemblyEmitter.o: src/AssemblyEmitter.cpp $(DEPS)
