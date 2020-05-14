@@ -45,7 +45,7 @@ Packing* a_find(llvm::Value* val, vector<Packing*> &PackingLst){
  * @return -1 NULL It is not packed value on memory.
  * 
 */
-int Packing::getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext context, vector<Packing*> &PackingLst){
+int Packing::getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext& context, vector<Packing*> &PackingLst){
   Value* pointerValue = loadInst->getPointerOperand();
   
   // find packing instance from packing list

@@ -24,7 +24,7 @@ test: sf-compiler-tests
 obj/SimpleBackend.o: src/SimpleBackend.cpp $(DEPS)
 	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-obj/packing.o: src/mem_packing/packing_access.cpp $(_DEPS) #Modification for compiling packing path
+obj/packing.o: src/mem_packing/packing.cpp src/mem_packing/packing_assign.cpp  src/mem_packing/packing_access.cpp $(_DEPS) #Modification for compiling packing path
 	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 obj/AssemblyEmitter.o: src/AssemblyEmitter.cpp $(DEPS)
