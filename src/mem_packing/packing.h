@@ -40,7 +40,7 @@ public:
   }
   
   static Packing* find(llvm::Value* val,vector<Packing*> &PackingLst);
-  static vector<llvm::Instruction*>* getOptimizedInsts(llvm::LoadInst *loadInst);
+  int Packing::getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext &context, vector<Packing*> &PackingLst)
   static vector<Value*>* find_ptr32(Module &M);
   static vector<Packing*>* getPacking(Module &M, ModuleAnalysisManager &FAM)
 };
