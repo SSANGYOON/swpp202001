@@ -18,55 +18,52 @@ using namespace llvm;
  * @return return all packable or seemingly packable i32* value
  * 
 */
-vector<Value*>* Packing::find_ptr32(Module &M){
+vector<Value*>* Packing::find_ptr32(Function &F){
   vector<Value*>* candidate = new vector<Value*>();
-  // loop for function
-  for(auto &F : M){
-    //loop for block
-    for(auto &BB  : F){
-      //loop for instruction
-      for(auto &I : BB){
-        Value* p;
-        if(auto a = dyn_cast<AllocaInst>(&I)){
-          p = dyn_cast<Value>(a);
-        }
-        else if(auto gep = dyn_cast<GetElementPtrInst>(&I)){
-          p = dyn_cast<Value>(a);
-        }
-        //check if p is i32*
-        llvm::Type* t = p->getType();
-        llvm::Type* inner = t->getPointerElementType();
-        if (inner->isIntegerTy()) {
-          llvm::IntegerType* it = (llvm::IntegerType*) inner;
-          if (it->getBitWidth() == 32) {
-            int store_num=0;
-            bool not_ret=true;
-            bool not_gep=true;
-            for(auto itr=p->use_begin();itr!=p->use_end();itr++){
-              Use &U = *itr;
-              User *Usr = U.getUser();
-              Instruction *UsrI = dyn_cast<Instruction>(Usr);
-              if(UsrI){
-                //check if p is multiply stored
-                if(dyn_cast<StoreInst>(UsrI))
-                  store_num+=1;
-                //check if p is used for getelementptr
-                else if(dyn_cast<GetElementPtrInst>(UsrI)){
-                  not_gep=false;
-                  break;
-                }
-                //check if p is used for ret
-                else if(dyn_cast<ReturnInst>(UsrI)){
-                  not_ret=false;
-                  break;
-                }
+  //loop for block
+  for(auto &BB  : F){
+    //loop for instruction
+    for(auto &I : BB){
+      Value* p;
+      if(auto a = dyn_cast<AllocaInst>(&I)){
+        p = dyn_cast<Value>(a);
+      }
+      else if(auto gep = dyn_cast<GetElementPtrInst>(&I)){
+        p = dyn_cast<Value>(a);
+      }
+      //check if p is i32*
+      llvm::Type* t = p->getType();
+      llvm::Type* inner = t->getPointerElementType();
+      if (inner->isIntegerTy()) {
+        llvm::IntegerType* it = (llvm::IntegerType*) inner;
+        if (it->getBitWidth() == 32) {
+          int store_num=0;
+          bool not_ret=true;
+          bool not_gep=true;
+          for(auto itr=p->use_begin();itr!=p->use_end();itr++){
+            Use &U = *itr;
+            User *Usr = U.getUser();
+            Instruction *UsrI = dyn_cast<Instruction>(Usr);
+            if(UsrI){
+              //check if p is multiply stored
+              if(dyn_cast<StoreInst>(UsrI))
+                store_num+=1;
+              //check if p is used for getelementptr
+              else if(dyn_cast<GetElementPtrInst>(UsrI)){
+                not_gep=false;
+                break;
+              }
+              //check if p is used for ret
+              else if(dyn_cast<ReturnInst>(UsrI)){
+                not_ret=false;
+                break;
               }
             }
-            //if p is seemingly packable according to previous step then push it to vector to return
-            if(store_num==1&&not_ret&&not_gep){
-              candidate->push_back(p);
-            }
-         }
+          }
+          //if p is seemingly packable according to previous step then push it to vector to return
+          if(store_num==1&&not_ret&&not_gep){
+            candidate->push_back(p);
+          }
         }
       }
     }
@@ -300,29 +297,15 @@ int Packing::getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext& cont
   return 0;
 }
 
-PreservedAnalyses PackMemIntoReg::run(Module &M, ModuleAnalysisManager &FAM) {
-    outs() << "TESTTING0\n";
+PreservedAnalyses PackMemIntoReg::run(Function &F, ModuleAnalysisManager &FAM) {
     if (llvm::verifyModule(M, &errs(), nullptr))
       exit(1);
-    outs() << "TESTTING1\n";
-    LLVMContext* context = &M.getContext();
-    outs() << "TESTTING2\n";
+    LLVMContext* context = &F.getContext();
     vector<Packing*>* packingLst = Packing::getPacking(M,FAM,*context);
-    outs() << "TESTTING3\n";
-    for(auto &G : M.global_objects()){
-    outs() << "TESTTING4\n";
-      if(auto *F = dyn_cast<Function>(&G)){
-    outs() << "TESTTING6\n";
-        for(auto &BB : *F){
-    outs() << "TESTTING7\n";
-          for(auto &I : BB){
-    outs() << "TESTTING8\n";
-            Packing::getOptimizedInsts(dyn_cast<LoadInst>(&I), *context, *packingLst);
-    outs() << "TESTTING9\n";
-          }
-        }
+    for(auto &BB : *F){
+      for(auto &I : BB){
+        Packing::getOptimizedInsts(dyn_cast<LoadInst>(&I), *context, *packingLst);
       }
-    }
-    
+    }    
     return PreservedAnalyses::all();
-  }
+}
