@@ -1,4 +1,5 @@
 #include "SimpleBackend.h"
+#include "packing.h"
 
 #include "llvm/IR/PassManager.h"
 #include "llvm/IRReader/IRReader.h"
@@ -76,6 +77,8 @@ int main(int argc, char **argv) {
   ModuleAnalysisManager MAM;
   PassBuilder PB;
   // Register all the basic analyses with the managers.
+  
+
   PB.registerModuleAnalyses(MAM);
   PB.registerCGSCCAnalyses(CGAM);
   PB.registerFunctionAnalyses(FAM);
@@ -86,11 +89,11 @@ int main(int argc, char **argv) {
   FunctionPassManager FPM;
   // If you want to add a function-level pass, add FPM.addPass(MyPass()) here.
   FPM.addPass(DoNothingPass());
-
+  FPM.addPass(PackMemIntoReg());
   ModulePassManager MPM;
   MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
   // If you want to add your module-level pass, add MPM.addPass(MyPass2()) here.
-  MPM.addPass(SimpleBackend(optOutput, optPrintDepromotedModule));
+  //MPM.addPass(SimpleBackend(optOutput, optPrintDepromotedModule));
 
   // Run!
   MPM.run(*M, MAM);

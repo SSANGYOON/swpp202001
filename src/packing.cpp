@@ -62,11 +62,18 @@ vector<Value*>* Packing::find_ptr32(Function &F){
           }
           //if p is seemingly packable according to previous step then push it to vector to return
           if(store_num==1&&not_ret&&not_gep){
+            /* DEBUGGING REMOVE THIS */
+            std::string str;
+            llvm::raw_string_ostream ss(str);
+            ss << I;
+	    outs() << "FINTPTR PUSHED : " << ss.str() << "\n";
+            /* DEBUGGING REMOVE THIS */
             candidate->push_back(p);
           }
         }
       }
     }
+  }
   return candidate;
 }
 /**
@@ -87,6 +94,7 @@ vector<Value*>* Packing::find_ptr32(Function &F){
 vector<Packing*>* Packing::getPacking(Function &F, FunctionAnalysisManager &FAM,llvm::LLVMContext &context){
   vector<Value*>* candidate=Packing::find_ptr32(F);
   vector<Packing*>* packs = new vector<Packing*>();
+    outs() << candidate->size() << "\n";
     outs() << "TESTTING10\n";
   DominatorTree &DT = FAM.getResult<DominatorTreeAnalysis>(F);
     outs() << "TESTTING11\n";
@@ -246,15 +254,24 @@ Packing* a_find(llvm::Value* val, vector<Packing*> &PackingLst){
  * 
 */
 int Packing::getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext& context, vector<Packing*> &PackingLst){
+
+    if(loadInst==nullptr)
+        return -1;
+    outs() << "getPointerOperand\n";
   Value* pointerValue = loadInst->getPointerOperand();
+    outs() << "getPointerOperand\n";
   
   // find packing instance from packing list
+    outs() << "a_find_before\n";
   Packing* packPtr = a_find(pointerValue,PackingLst);
+    outs() << "a_find_after\n";
 
   // if it is not packed value
   if(!packPtr){
+outs() << "a_find_NOT_found\n";
     return -1;
   }
+outs() << "a_find_found\n";
 
   auto loadName = loadInst->getName();
   auto baseTwine = new Twine(loadName);
@@ -294,12 +311,12 @@ int Packing::getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext& cont
   return 0;
 }
 
-PreservedAnalyses PackMemIntoReg::run(Function &F, ModuleAnalysisManager &FAM) {
-    if (llvm::verifyModule(M, &errs(), nullptr))
-      exit(1);
+PreservedAnalyses PackMemIntoReg::run(Function &F, FunctionAnalysisManager &FAM) {
     LLVMContext* context = &F.getContext();
-    vector<Packing*>* packingLst = Packing::getPacking(M,FAM,*context);
-    for(auto &BB : *F){
+    vector<Packing*>* packingLst = Packing::getPacking(F,FAM,*context);
+    outs() << packingLst->size() << "\n";
+    outs() << "TESTTING13\n";
+    for(auto &BB : F){
       for(auto &I : BB){
         Packing::getOptimizedInsts(dyn_cast<LoadInst>(&I), *context, *packingLst);
       }

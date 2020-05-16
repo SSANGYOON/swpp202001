@@ -54,8 +54,6 @@ class PackMemIntoReg : public llvm::PassInfoMixin<PackMemIntoReg> {
   bool printDepromotedModule;
 
 public:
-  PackMemIntoReg(std::string outputFile, bool printDepromotedModule) :
-      outputFile(outputFile), printDepromotedModule(printDepromotedModule) {}
-  llvm::PreservedAnalyses run(llvm::Function &F, llvm::ModuleAnalysisManager &FAM);
+  llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager &FAM);
 };
 #endif
