@@ -45,8 +45,8 @@ public:
   
   static Packing* find(llvm::Value* val,vector<Packing*> &PackingLst);
   static int getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext &context, vector<Packing*> &PackingLst);
-  static vector<Value*>* find_ptr32(Function &M);
-  static vector<Packing*>* getPacking(Function &M, FunctionAnalysisManager &FAM, llvm::LLVMContext &context);
+  static vector<Value*>* find_ptr32(Function &F);
+  static vector<Packing*>* getPacking(Function &F, FunctionAnalysisManager &FAM, llvm::LLVMContext &context);
 };
 
 class PackMemIntoReg : public llvm::PassInfoMixin<PackMemIntoReg> {

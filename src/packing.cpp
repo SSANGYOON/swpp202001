@@ -85,7 +85,7 @@ vector<Value*>* Packing::find_ptr32(Function &F){
  * @return vector containing all Packing instances for each pointer
  * 
 */
-vector<Packing*>* Packing::getPacking(Function &F, FunctionAnalysisManager &F,llvm::LLVMContext &context){
+vector<Packing*>* Packing::getPacking(Function &F, FunctionAnalysisManager &FAM,llvm::LLVMContext &context){
   vector<Value*>* candidate=Packing::find_ptr32(F);
   vector<Packing*>* packs = new vector<Packing*>();
     outs() << "TESTTING10\n";
