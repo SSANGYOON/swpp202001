@@ -5,6 +5,10 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/IR/Verifier.h"
+#include <utility>
 #include <string>
 #include <vector>
 
@@ -40,9 +44,9 @@ public:
   }
   
   static Packing* find(llvm::Value* val,vector<Packing*> &PackingLst);
-  int Packing::getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext &context, vector<Packing*> &PackingLst)
+  static int getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext &context, vector<Packing*> &PackingLst);
   static vector<Value*>* find_ptr32(Module &M);
-  static vector<Packing*>* getPacking(Module &M, ModuleAnalysisManager &FAM)
+  static vector<Packing*>* getPacking(Module &M, ModuleAnalysisManager &FAM, llvm::LLVMContext &context);
 };
 
 class PackMemIntoReg : public llvm::PassInfoMixin<PackMemIntoReg> {
@@ -52,21 +56,6 @@ class PackMemIntoReg : public llvm::PassInfoMixin<PackMemIntoReg> {
 public:
   PackMemIntoReg(std::string outputFile, bool printDepromotedModule) :
       outputFile(outputFile), printDepromotedModule(printDepromotedModule) {}
-  llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM){
-    if (verifyModule(M, &errs(), nullptr))
-      exit(1);
-    LLVMContext* context = &M.getContext();
-    vector<Packing*>* packingLst = Packing::getPacking(M,FAM,*context);
-    for(auto &G : M.global_objects()){
-      if(auto *F = dyn_cast<Function>(&G)){
-        for(auto &BB : F){
-          for(auto &I : BB){
-            Packing::getOptimizedInsts(&I, *context, packingLst)==0)
-          }
-        }
-      }
-    }
-    
-    return PreservedAnalyses::all();
-  }
+  llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &FAM);
 };
+#endif
