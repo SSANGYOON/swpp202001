@@ -21,6 +21,16 @@ typedef int PackedPosition;
 #define HIGHER 1
 #define LOWER 0
 
+class Replacement{
+public:
+  vector<Instruction*>* insts;
+  LoadInst* loadInst;
+  Replacement(vector<Instruction*>* insts, LoadInst* loadInst){
+   this->insts = insts;
+   this->loadInst = loadInst;
+  }
+};
+
 class Packing{
   llvm::Value *packingReg; //packing register after replacement for assignment
   llvm::Value *memValue;  //packed variable's Value instance.
@@ -44,9 +54,9 @@ public:
   }
   
   static Packing* find(llvm::Value* val,vector<Packing*> &PackingLst);
-  static int getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext &context, vector<Packing*> &PackingLst);
+  static int getOptimizedInsts(llvm::LoadInst* loadInst, llvm::LLVMContext &context, vector<Packing*> &PackingLst,vector<Replacement*> *repLst);
   static vector<Value*>* find_ptr32(Function &F);
-  static vector<Packing*>* getPacking(Function &F, FunctionAnalysisManager &FAM, llvm::LLVMContext &context);
+  static vector<Packing*>* getPacking(Function &F, FunctionAnalysisManager &FAM, llvm::LLVMContext &context,vector<Instruction*>* removeLst);
 };
 
 class PackMemIntoReg : public llvm::PassInfoMixin<PackMemIntoReg> {

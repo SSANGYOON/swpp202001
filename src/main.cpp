@@ -98,5 +98,13 @@ int main(int argc, char **argv) {
   // Run!
   MPM.run(*M, MAM);
 
+  string str;
+  raw_string_ostream os(str);
+
+  M->print(os,nullptr);
+
+  str = os.str();
+  outs() << str <<"\n";
+
   return 0;
 }

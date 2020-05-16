@@ -11,19 +11,17 @@ define i32 @f(i32* %i){
 ; CHECK-NEXT:     [[RESULT:%[a-zA-Z0-9_]+]] = add i32 [[E]], [[F]]
 ; CHECK-NEXT:     ret [[RESULT]]
 
-    %p = alloc i32
-    %q = alloc i32
-
-    %b = load i32, i32* i
-    store i32 %b, i32* %p
-
-    %c = load i32, i32* i
-    store i32 %c, i32* %q
+    %p = alloca i32
+    %r = alloca i32
+    %q = alloca i32
+    store i32 3, i32* %p
+    store i32 4, i32* %p
+    store i32 4, i32* %r
+    store i32 4, i32* %q
 
     %e = load i32, i32* %p
     %f = load i32, i32* %q
     
     %result = add i32 %e, %f
-    ret result
+    ret i32 %result
 }
-; CHECK:     end main
