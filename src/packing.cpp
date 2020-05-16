@@ -188,9 +188,9 @@ vector<Packing*>* Packing::getPacking(Function &F, FunctionAnalysisManager &FAM,
           addOp->insertAfter(shl);
         }
         else if(dyn_cast<ConstantInt>(v2)&&!dyn_cast<ConstantInt>(v1)){
-          auto zextOp1 = llvm::ZExtInst(s1->getValueOperand(), llvm::IntegerType::getInt64Ty(context),
+          auto zextOp1 = llvm::CastInst::CreateZExtOrBitCast(s1->getValueOperand(), llvm::IntegerType::getInt64Ty(context),
           baseTwine1->concat("_zext")
-          ).clone();
+          );
           auto *C2 = dyn_cast<ConstantInt>(v2);
           auto zextOp2 = ConstantInt::get(llvm::IntegerType::getInt64Ty(context),C2->getZExtValue());
           auto shl = llvm::BinaryOperator::CreateShl(dyn_cast<Value>(zextOp1), ConstantInt::get(llvm::IntegerType::getInt64Ty(context),32),
@@ -205,10 +205,10 @@ vector<Packing*>* Packing::getPacking(Function &F, FunctionAnalysisManager &FAM,
         else if(dyn_cast<ConstantInt>(v1)&&!dyn_cast<ConstantInt>(v2)){
           auto *C1 = dyn_cast<ConstantInt>(v1);
           auto zextOp1 = ConstantInt::get(llvm::IntegerType::getInt64Ty(context),C1->getZExtValue());
-          auto zextOp2 = llvm::ZExtInst(s2->getValueOperand(), llvm::IntegerType::getInt64Ty(context),
+          auto zextOp2 = llvm::CastInst::CreateZExtOrBitCast(s2->getValueOperand(), llvm::IntegerType::getInt64Ty(context),
           baseTwine2->concat("_zext")
-          ).clone();
-          auto shl = llvm::BinaryOperator::CreateShl(zextOp1, ConstantInt::get(llvm::IntegerType::getInt64Ty(context),32),
+          );
+          auto shl = llvm::BinaryOperator::CreateShl(zextOp1, dyn_cast<Value>(ConstantInt::get(llvm::IntegerType::getInt64Ty(context),32)),
           baseTwine2->concat("_shl")
           );
           auto addOp = llvm::BinaryOperator::CreateAdd(dyn_cast<Value>(zextOp2),dyn_cast<Value>(shl),baseTwine1->concat("_").concat(ptr2->getName()).concat("_fit"));
@@ -218,21 +218,25 @@ vector<Packing*>* Packing::getPacking(Function &F, FunctionAnalysisManager &FAM,
           addOp->insertAfter(shl);
         }
         else{
-          auto zextOp1 = llvm::ZExtInst(s1->getValueOperand(), llvm::IntegerType::getInt64Ty(context),
+          
+          auto zextOp1 = llvm::CastInst::CreateZExtOrBitCast(s1->getValueOperand(), llvm::IntegerType::getInt64Ty(context),
           baseTwine2->concat("_zext")
-          ).clone();
-          auto zextOp2 = llvm::ZExtInst(s2->getValueOperand(), llvm::IntegerType::getInt64Ty(context),
+          );
+          auto zextOp2 = llvm::CastInst::CreateZExtOrBitCast(s2->getValueOperand(), llvm::IntegerType::getInt64Ty(context),
           baseTwine2->concat("_zext")
-          ).clone();
-          auto shl = llvm::BinaryOperator::CreateShl(zextOp1, ConstantInt::get(llvm::IntegerType::getInt64Ty(context),32),
+          );
+          
+          auto shl = llvm::BinaryOperator::CreateShl(dyn_cast<Value>(zextOp1), dyn_cast<Value>(ConstantInt::get(llvm::IntegerType::getInt64Ty(context),32)),
           baseTwine2->concat("_shl")
           );
+          
           auto addOp = llvm::BinaryOperator::CreateAdd(dyn_cast<Value>(zextOp2),dyn_cast<Value>(shl),baseTwine1->concat("_").concat(ptr2->getName()).concat("_fit"));
           PackingReg=dyn_cast<Value>(addOp);
           zextOp1->insertAfter(s2);
           zextOp2->insertAfter(zextOp1);
           shl->insertAfter(zextOp2);
           addOp->insertAfter(shl);
+          
         }
         Packing *firstPack = new Packing();
         firstPack->setMemValue(s1->getPointerOperand());
