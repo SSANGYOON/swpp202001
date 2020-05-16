@@ -13,7 +13,7 @@ using namespace llvm;
  * @author 이상윤
  * @date 2020-05-13
  * 
- * @param llvm::Module &M our optimizing module
+ * @param llvm::Function &F our optimizing function
  * 
  * @return return all packable or seemingly packable i32* value
  * 
@@ -67,7 +67,6 @@ vector<Value*>* Packing::find_ptr32(Function &F){
         }
       }
     }
-  }
   return candidate;
 }
 /**
@@ -77,19 +76,19 @@ vector<Value*>* Packing::find_ptr32(Function &F){
  * @author 이상윤
  * @date 2020-05-13
  * 
- * @param llvm::Module &M our optimizing module
- * @param llvm::ModuleAnalysisManager &FAM
- * @param llvm::LLVMContext context our Module context
- * @param vector<Value*>* candidate returned vector from vector<Value*>* find_ptr32(Module &M)
+ * @param llvm::Function &F our optimizing function
+ * @param llvm::FunctionAnalysisManager &FAM
+ * @param llvm::LLVMContext context our Function context
+ * @param vector<Value*>* candidate returned vector from vector<Value*>* find_ptr32(Function &M)
  * 
  * @return vector containing all Packing instances for each pointer
  * 
 */
-vector<Packing*>* Packing::getPacking(Module &M, ModuleAnalysisManager &FAM,llvm::LLVMContext &context){
-  vector<Value*>* candidate=Packing::find_ptr32(M);
+vector<Packing*>* Packing::getPacking(Function &F, FunctionAnalysisManager &FAM,llvm::LLVMContext &context){
+  vector<Value*>* candidate=Packing::find_ptr32(F);
   vector<Packing*>* packs = new vector<Packing*>();
     outs() << "TESTTING10\n";
-  DominatorTree &DT = FAM.getResult<DominatorTreeAnalysis>(M);
+  DominatorTree &DT = FAM.getResult<DominatorTreeAnalysis>(F);
     outs() << "TESTTING11\n";
   //compare every i32* pointers in candidate 
   //if two pointers are packable insert optimized instruction insert optimized instruction and assign Packing* instance
@@ -118,21 +117,19 @@ vector<Packing*>* Packing::getPacking(Module &M, ModuleAnalysisManager &FAM,llvm
       auto ptrI1=dyn_cast<Instruction>(ptr1);
       auto ptrI2=dyn_cast<Instruction>(ptr2);
       //determine what is allocated first. set ptr1 as previous one
-      if(ptrI1->getParent()->getParent()==ptrI2->getParent()->getParent()){
-        if(DT.dominates(ptrI2,ptrI2)){
-          auto temp=ptr1;
-          ptr1=ptr2;
-          ptr2=temp; 
-          auto tempI=ptrI1;
-          ptrI1=ptrI2;
-          ptrI2=tempI;
-        }
-        else if(DT.dominates(ptrI1,ptrI2)){
-        }
+      if(DT.dominates(ptrI2,ptrI2)){
+        auto temp=ptr1;
+        ptr1=ptr2;
+        ptr2=temp; 
+        auto tempI=ptrI1;
+        ptrI1=ptrI2;
+        ptrI2=tempI;
+      }
+      else if(DT.dominates(ptrI1,ptrI2)){
+      }
       //not pack these two registers(not on same block)
-        else{
-          continue;
-        }
+      else{
+        continue;
       }
       //don't pack ptr1 is stored before ptr2 is allocated
       bool not_store_before_2=true;
